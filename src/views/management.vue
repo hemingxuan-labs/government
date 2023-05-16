@@ -1102,7 +1102,12 @@
                                                         >请从下面专业树中选择</span
                                                     >
                                                     <el-tree
-                                                        style="margin-top: 10px"
+                                                        style="
+                                                            margin-top: 10px;
+                                                            overflow-y: auto;
+                                                            height: calc(100% - 26px);
+                                                        "
+                                                        ref="tree"
                                                         show-checkbox
                                                         :data="treeData"
                                                         :check-strictly="true"
@@ -1217,7 +1222,7 @@
                                         >删除评委</el-button
                                     >
                                     <el-dialog
-                                        class="xuanzexiangmuPop xuanzedanwei"
+                                        class="xuanzexiangmuPop xinznegpingwei"
                                         title="新增招标人评委"
                                         :visible.sync="addPingwei"
                                         @close="addPingweiFrom = {}"
@@ -1659,11 +1664,160 @@ export default {
                     children: [
                         {
                             label: '规划',
-                            children: [{ label: '国民经济和社会发展规划' }]
+                            children: [
+                                { label: '国民经济和社会发展规划' },
+                                { label: '城乡规划' },
+                                { label: '土地利用总体规划' }
+                            ]
                         },
                         {
                             label: '投资策划与决策',
                             children: [{ label: '项目建议、可行性研究、评估及后评价' }]
+                        },
+                        {
+                            label: '勘探',
+                            children: [
+                                { label: '岩土工程' },
+                                { label: '地质工程' },
+                                { label: '测绘工程' },
+                                { label: '水文气象勘探' }
+                            ]
+                        },
+                        {
+                            label: '设计',
+                            children: [
+                                { label: '建筑工程' },
+                                { label: '市政工程' },
+                                { label: '公路工程' },
+                                { label: '铁路工程' },
+                                { label: '城市轨道交通工程' }
+                            ]
+                        },
+                        {
+                            label: '监理',
+                            children: [
+                                { label: '建筑工程' },
+                                { label: '市政工程' },
+                                { label: '公路工程' },
+                                { label: '铁路工程' },
+                                { label: '城市轨道交通' }
+                            ]
+                        },
+                        {
+                            label: '工程造价',
+                            children: [{ label: '土建工程' }, { label: '安装工程' }]
+                        },
+                        {
+                            label: '项目管理(含代建)',
+                            children: [{ label: '建设项目管理' }]
+                        },
+                        {
+                            label: '工程施工',
+                            children: [
+                                { label: '建筑工程' },
+                                { label: '市政工程' },
+                                { label: '公路工程' },
+                                { label: '铁路工程' },
+                                { label: '城市轨道交通' }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    label: '货物类',
+                    children: [
+                        {
+                            label: '机械、设备类'
+                        },
+                        {
+                            label: '医疗器械'
+                        },
+                        {
+                            label: '金属材料'
+                        },
+                        {
+                            label: '石油及其制品'
+                        },
+                        {
+                            label: '煤炭煤层气及其制品'
+                        }
+                    ]
+                },
+                {
+                    label: '服务类',
+                    children: [
+                        {
+                            label: '勘查与调查'
+                        },
+                        {
+                            label: '公共咨询'
+                        },
+                        {
+                            label: '工商管理'
+                        },
+                        {
+                            label: '金融'
+                        },
+                        {
+                            label: '法律'
+                        },
+                        {
+                            label: '修理'
+                        },
+                        {
+                            label: '租赁'
+                        },
+                        {
+                            label: '交通运输与物流'
+                        },
+                        {
+                            label: '节能服务'
+                        },
+                        {
+                            label: '高新技术服务'
+                        },
+                        {
+                            label: '其他服务'
+                        }
+                    ]
+                },
+                {
+                    label: '服务类',
+                    children: [
+                        {
+                            label: '勘查与调查'
+                        }
+                    ]
+                },
+                {
+                    label: '房建市政工程专家库',
+                    children: [
+                        {
+                            label: '勘查与调查'
+                        }
+                    ]
+                },
+                {
+                    label: '水利工程专家库',
+                    children: [
+                        {
+                            label: '勘查与调查'
+                        }
+                    ]
+                },
+                {
+                    label: '交通工程专家库',
+                    children: [
+                        {
+                            label: '勘查与调查'
+                        }
+                    ]
+                },
+                {
+                    label: '政府采购专家库',
+                    children: [
+                        {
+                            label: '勘查与调查'
                         }
                     ]
                 }
@@ -1879,11 +2033,13 @@ export default {
                 this.formLabelAlign.xm_dljg = row.name
             }
         },
-        handleCheckChange(res) {
-            this.yixuanzhuanyeThis = [
-                ...this.yixuanzhuanyeThis,
-                { name: res.label, proid: this.formLabelAlign.id }
-            ]
+        handleCheckChange(res, node) {
+            if (node) {
+                this.yixuanzhuanyeThis = [
+                    ...this.yixuanzhuanyeThis,
+                    { name: res.label, proid: this.formLabelAlign.id }
+                ]
+            }
         },
         async addDiscipline() {
             // 添加专业前置判断
@@ -2122,6 +2278,12 @@ export default {
     .el-dialog {
         width: 1000px;
         height: 640px;
+    }
+}
+.xinznegpingwei {
+    .el-dialog {
+        width: 98%;
+        height: 98%;
     }
 }
 .el-form-item {

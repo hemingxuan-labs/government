@@ -7,7 +7,7 @@ let service = axios.create({
 service.interceptors.request.use(
     (config) => {
         // config.url = 'http://192.168.0.8:10889' + config.url.substring(4)
-        config.url = 'http://34.125.107.145:10889' + config.url.substring(4)
+        // config.url = 'http://34.125.107.145:10889' + config.url.substring(4)
         return config
     },
     (error) => {

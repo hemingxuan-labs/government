@@ -85,7 +85,11 @@
                 <el-table-column prop="xm_dq" label="评标地点"> </el-table-column>
                 <el-table-column prop="xm_pb_time" label="评标时间"> </el-table-column>
                 <el-table-column prop="name" label="项目状态">
-                    <template slot-scope="scope"> 未抽取 </template>
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.noticestates == 3">已抽取</span>
+                        <span v-else-if="scope.row.noticestates == 4">通知结束</span>
+                        <span v-else>未抽取</span>
+                    </template>
                 </el-table-column>
                 <el-table-column prop="name" label="操作">
                     <template slot-scope="scope">
@@ -118,7 +122,11 @@
             </el-pagination>
         </div>
         <!-- 抽取弹窗 -->
-        <el-dialog class="extract-object" title="抽取弹窗" :visible.sync="dialogFormVisible">
+        <el-dialog
+            class="extract-object"
+            title="抽取弹窗"
+            :visible.sync="dialogFormVisible"
+            @close="colseExtractObject">
             <div style="width: 100%; height: 100%; display: flex">
                 <div
                     style="
@@ -166,7 +174,10 @@
                         </div>
                         <div
                             class="finish"
-                            :class="{ 'is-active-tz': formLabelAlign.noticestates >= 3 }"
+                            :class="{
+                                'is-active-tz': formLabelAlign.noticestates === 3,
+                                'is-active': formLabelAlign.noticestates >= 4
+                            }"
                             @click="
                                 () => {
                                     if (formLabelAlign.noticestates >= 3) {
@@ -176,8 +187,12 @@
                             ">
                             <div class="finish-item">
                                 <img
-                                    v-if="formLabelAlign.noticestates >= 3"
+                                    v-if="formLabelAlign.noticestates == 3"
                                     src="@/assets/images/icon-now3.png"
+                                    alt="" />
+                                <img
+                                    v-else-if="formLabelAlign.noticestates == 4"
+                                    src="@/assets/images/icon-ac-3.png"
                                     alt="" />
                                 <img v-else src="@/assets/images/icon3.png" alt="" />
                             </div>
@@ -191,13 +206,13 @@
                             class="finish"
                             :class="{ 'is-active': formLabelAlign.noticestates >= 4 }">
                             <div class="finish-item">
-                                <img src="@/assets/images/icon4.png" alt="" />
+                                <img
+                                    v-if="formLabelAlign.noticestates >= 4"
+                                    src="@/assets/images/icon-ac-4.png"
+                                    alt="" />
+                                <img v-else src="@/assets/images/icon4.png" alt="" />
                             </div>
                             评委名单
-                            <img
-                                class="arrow-bottom"
-                                src="@/assets/images/arrow-bottom.png"
-                                alt="" />
                         </div>
                     </div>
                 </div>
@@ -212,9 +227,7 @@
                             display: flex;
                             justify-content: space-between;
                         ">
-                        <el-button type="primary" size="small" @click="chouquPop = true"
-                            >抽取</el-button
-                        >
+                        <el-button type="primary" size="small" @click="onChouqu">抽取</el-button>
                         <el-dialog
                             class="tipsPop"
                             width="30%"
@@ -313,20 +326,30 @@
                                             scope.$index + 1
                                         }}</template>
                                     </el-table-column>
-                                    <el-table-column prop="name" label="姓名"> </el-table-column>
-                                    <el-table-column prop="name" label="评委编号">
+                                    <el-table-column prop="name" label="姓名">
                                         <template slot-scope="scope">XXX</template>
                                     </el-table-column>
+                                    <el-table-column prop="name" label="评委编号">
+                                        <template slot-scope="scope">XXXXX</template>
+                                    </el-table-column>
                                     <el-table-column prop="job_phone" label="电话">
+                                        <template slot-scope="scope">XXXXXXXXX</template>
                                     </el-table-column>
                                     <el-table-column prop="zhuan_ye" label="评标专业" width="220">
+                                        <template slot-scope="scope">XXXXX</template>
                                     </el-table-column>
                                     <el-table-column prop="name" label="抽取日期" width="180">
                                         <template slot-scope="scope">2023-03-15 12:49:13</template>
                                     </el-table-column>
                                     <el-table-column prop="name" label="通知状态">
                                         <template slot-scope="scope">
-                                            <span style="color: blue">可以参加</span>
+                                            <span v-if="scope.row.status === 0">尚未通知</span>
+                                            <span style="color: blue" v-if="scope.row.status === 1"
+                                                >可以参加</span
+                                            >
+                                            <span style="color: red" v-if="scope.row.status === 2"
+                                                >拒绝参加</span
+                                            >
                                         </template>
                                     </el-table-column>
                                 </el-table>
@@ -334,9 +357,7 @@
                         </el-collapse>
                     </div>
                 </div>
-                <div
-                    v-else-if="dangqianClick == 3"
-                    style="flex: 1; display: flex; flex-direction: column">
+                <div v-else style="flex: 1; display: flex; flex-direction: column">
                     <div
                         style="
                             border-bottom: 1px solid #f0f2f5;
@@ -358,15 +379,18 @@
                                 <template slot="title">
                                     <p style="color: #2590eb">
                                         01 抽取概况 (状态：{{
-                                            formLabelAlign.noticestates == 1 ? '未抽取' : '已抽取'
+                                            formLabelAlign.noticestates == 4
+                                                ? '等待通知'
+                                                : '已抽取'
                                         }})
                                     </p>
                                 </template>
                                 <p style="font-size: 14px; color: #6e622e; margin-top: 20px">
                                     专家通知情况:已通知
-                                    <span style="color: #ff0000">2</span> 位;尚未通知
-                                    <span style="color: #ff0000">6</span> 位;已确认参加
-                                    <span style="color: #ff0000">1</span> 位
+                                    <span style="color: #ff0000">{{ yitongzhi }}</span> 位;尚未通知
+                                    <span style="color: #ff0000">{{ shangweitongzhi }}</span>
+                                    位;已确认参加
+                                    <span style="color: #ff0000">{{ querencanjia }}</span> 位
                                 </p>
                             </el-collapse-item>
                             <el-collapse-item name="2">
@@ -391,20 +415,31 @@
                                             scope.$index + 1
                                         }}</template>
                                     </el-table-column>
-                                    <el-table-column prop="name" label="姓名"> </el-table-column>
-                                    <el-table-column prop="name" label="评委编号">
+                                    <el-table-column prop="name" label="姓名">
                                         <template slot-scope="scope">XXX</template>
                                     </el-table-column>
-                                    <el-table-column prop="job_phone" label="电话">
+                                    <el-table-column prop="name" label="评委编号">
+                                        <template slot-scope="scope">XXXXX</template>
                                     </el-table-column>
-                                    <el-table-column prop="zhuan_ye" label="评标专业" width="220">
+                                    <el-table-column label="电话">
+                                        <template slot-scope="scope">XXXXXXXX</template>
+                                    </el-table-column>
+                                    <el-table-column label="评标专业" width="220">
+                                        <template slot-scope="scope">--</template>
                                     </el-table-column>
                                     <el-table-column prop="name" label="抽取日期" width="180">
-                                        <template slot-scope="scope">2023-03-15 12:49:13</template>
+                                        <template slot-scope="scope">2023-05-15 12:49:13</template>
                                     </el-table-column>
                                     <el-table-column prop="name" label="通知状态">
                                         <template slot-scope="scope">
-                                            <span style="color: blue">可以参加</span>
+                                            <span v-if="scope.row.status === 0">尚未通知</span>
+                                            <span style="color: blue" v-if="scope.row.status === 1"
+                                                >可以参加</span
+                                            >
+                                            <span style="color: red" v-if="scope.row.status === 2"
+                                                >拒绝参加</span
+                                            >
+                                            <span v-if="scope.row.status === 3">对方无应答</span>
                                         </template>
                                     </el-table-column>
                                 </el-table>
@@ -427,9 +462,12 @@ import {
     zhuanyeDelete,
     zhaobiaorenpingweiAdd,
     zhaobiaorenpingweiGetlist,
-    zhaobiaorenpingweiDeleteList
+    zhaobiaorenpingweiDeleteList,
+    chouqupingweiChouqu,
+    chouqupingweiGetlist
 } from '@/api/index.js'
 
+let timers = null
 export default {
     name: 'management',
     components: {},
@@ -438,6 +476,9 @@ export default {
             chouquPop: false,
             activeNames: ['1', '2', '3', '4', '5', '6', '7'],
             dangqianClick: 2,
+            querencanjia: 0, // 抽取状态展示信息
+            shangweitongzhi: 160, // 抽取状态展示信息
+            yitongzhi: 0, // 抽取状态展示信息
             // 列表筛选 ======================>
             tableData: [], // 列表
             tableDataTotal: 0,
@@ -524,7 +565,41 @@ export default {
             this.dialogFormVisible = true
             this.formLabelAlign = row
             this.getZhuanyeList()
+
+            if (this.formLabelAlign.noticestates >= 3) {
+                this.dangqianClick = 3
+            } else {
+                this.dangqianClick = 2
+            }
+            this.getChouqupingweiGetlist()
+            timers = setInterval(() => {
+                this.getChouqupingweiGetlist()
+            }, 4000)
+        },
+        async getChouqupingweiGetlist() {
+            const res = await chouqupingweiGetlist({
+                proid: this.formLabelAlign.id
+            })
+            this.querencanjia = res.data.result.querencanjia
+            this.shangweitongzhi = res.data.result.shangweitongzhi
+            this.yitongzhi = res.data.result.yitongzhi
             this.pingweiPopOpen()
+            if (res.data.result.shangweitongzhi == 0) {
+                this.colseExtractObject()
+                this.formLabelAlign.noticestates = 4
+            }
+        },
+        colseExtractObject() {
+            clearInterval(timers)
+            timers = null
+        },
+        async onChouqu() {
+            this.formLabelAlign.noticestates = 3
+            this.dangqianClick = 3
+            await chouqupingweiChouqu({
+                id: this.formLabelAlign.id
+            })
+            this.chouquPop = true
         },
         async getCreateProjectList() {
             // 获取列表
@@ -707,9 +782,36 @@ export default {
         // 评委 ========================
         async pingweiPopOpen() {
             // 获取评委列表
-            if (!this.formLabelAlign.id) return
-            const res = await zhaobiaorenpingweiGetlist({ proid: this.formLabelAlign.id })
-            this.pingweiList = res.data.result
+            let newList = []
+            for (let index = 0; index < this.shangweitongzhi; index++) {
+                newList.push({
+                    status: 0
+                })
+            }
+            for (let index = 0; index < this.querencanjia; index++) {
+                newList.push({
+                    status: 1
+                })
+            }
+            for (let index = 0; index < this.yitongzhi - this.querencanjia; index++) {
+                newList.push({
+                    status: this.randomNum(2, 3)
+                })
+            }
+            this.pingweiList = newList.sort(() => Math.random() - 0.5)
+        },
+        randomNum(minNum, maxNum) {
+            switch (arguments.length) {
+                case 1:
+                    return parseInt(Math.random() * minNum + 1, 10)
+                    break
+                case 2:
+                    return parseInt(Math.random() * (maxNum - minNum + 1) + minNum, 10)
+                    break
+                default:
+                    return 0
+                    break
+            }
         },
         async addPingweiReqProvide() {
             // 新增评委 前置

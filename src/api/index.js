@@ -86,3 +86,17 @@ export const zhaobiaorenpingweiDeleteList = (data) => {
         data
     })
 }
+// 抽取
+export const chouqupingweiChouqu = (data) => {
+    return service({
+        url: `/api/chouqupingwei/chouqu${objToUrl(data)}`,
+        method: 'get'
+    })
+}
+// 抽取评委数据
+export const chouqupingweiGetlist = (data) => {
+    return service({
+        url: `/api/chouqupingwei/getlist${objToUrl(data)}`,
+        method: 'get'
+    })
+}
